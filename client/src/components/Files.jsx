@@ -7,7 +7,8 @@ import {formatBytes} from '@/utils/file'
 
 import "@/styles/global.css"
 
-const API_URL = import.meta.env.PUBLIC_API_URL
+const MODE = import.meta.env.PUBLIC_MODE
+const API_URL = MODE === "DEV" ? "http://localhost:3000" : window.location.origin
 
 export default () => {
     const [data, setData] = useState({});
