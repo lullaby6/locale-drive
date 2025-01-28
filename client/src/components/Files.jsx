@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, File, Folder, EllipsisVertical, Download, Trash2, ExternalLink, Upload } from 'lucide-react'
+import { Search, File, Folder, EllipsisVertical, Download, Trash2, ExternalLink, Upload, XIcon } from 'lucide-react'
 
 import { format } from "@formkit/tempo"
 
@@ -14,10 +14,16 @@ export default () => {
     const [files, setFiles] = useState([]);
     const [storagePath, setStoragePath] = useState("");
 
+    const [query, setQuery] = useState("");
+
     const inputFilesRef = useRef(null);
 
-    async function fetchData() {
-        const response = await fetch(`${API_URL}/files`);
+    async function getFiles() {
+        let url = `${API_URL}/files`
+
+        if (query && query.trim() !== "") url += `?q=${query}`
+
+        const response = await fetch(url);
         const responseData = await response.json();
 
         setData(responseData);
@@ -34,13 +40,45 @@ export default () => {
         setStoragePath(responseData.realPath)
     }
 
+    const [searchTimeout, setSearchTimeout] = useState(null);
+    const searchTimeoutDuration = 500;
+    const searchRef = useRef(null);
+
+    async function handleSearch(event) {
+        if (searchTimeout) {
+            clearInterval(searchTimeout);
+            setSearchTimeout(null);
+        }
+
+        setSearchTimeout(setTimeout(() => {
+            const value = event.target.value.trim()
+
+            setQuery(value);
+        }, searchTimeoutDuration))
+    }
+
+    function clearQuery() {
+        searchRef.current.value = "";
+
+        if (searchTimeout) {
+            clearInterval(searchTimeout);
+            setSearchTimeout(null);
+        }
+
+        setQuery("");
+    }
+
+    useEffect(() => {
+        getFiles();
+    }, [query])
+
     async function deleteFile(fileName) {
         const response = await fetch(`${API_URL}/file/${fileName}`, {
             method: "DELETE"
         });
 
         if (response.ok) {
-            await fetchData();
+            await getFiles();
         }
     }
 
@@ -83,7 +121,7 @@ export default () => {
                 });
 
                 if (response.ok) {
-                    await fetchData();
+                    await getFiles();
                 }
             }, debounceTimeoutDuration);
 
@@ -112,13 +150,13 @@ export default () => {
             });
 
             if (response.ok) {
-                await fetchData();
+                await getFiles();
             }
         }
     }
 
     useEffect(() => {
-        fetchData()
+        getFiles()
     }, [])
 
     return (
@@ -131,11 +169,15 @@ export default () => {
             </div>
 
             <div className="w-full flex flex-col lg:flex-row gap-4 lg:gap-0 justify-between items-center">
-                <div className="bg-neutral-100 w-full lg:w-1/3 rounded shadow flex justify-start items-center">
+                <div className="bg-neutral-100 w-full lg:w-1/3 rounded shadow flex justify-start items-center relative">
                     <span className='mx-2'>
                         <Search className="text-neutral-700" />
                     </span>
-                    <input className="py-2 focus:outline-none w-full" type="search" placeholder="Search files..." spellCheck="false" autoComplete="false" />
+                    <input ref={searchRef} onChange={handleSearch} defaultValue={query} className="py-2 focus:outline-none w-full" type="search" placeholder="Search files..." spellCheck="false" autoComplete="false" />
+
+                    {searchRef.current?.value.trim() !== "" && <button onClick={clearQuery} className='absolute top-0 right-0 m-2 cursor-pointer'>
+                        <XIcon className="h-6 text-neutral-700 opacity-50 hover:opacity-100 transition-opacity" />
+                    </button>}
                 </div>
 
                 <div className="flex flex-col lg:flex-row justify-center items-center gap-4 w-full lg:w-fit">

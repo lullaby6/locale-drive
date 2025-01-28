@@ -59,6 +59,8 @@ app.use('/storage', express.static(storagePath));
 if (!fs.existsSync(storagePath)) fs.mkdirSync(storagePath);
 
 app.get('/files', async (req, res) => {
+    const query = req.query?.q || null;
+
     try {
         const dirents = await fs.promises.readdir(storagePath, { withFileTypes: true });
 
@@ -71,6 +73,7 @@ app.get('/files', async (req, res) => {
                 const stats = await fs.promises.stat(filePath);
 
                 if (dirent.isDirectory()) return
+                if (query && !filename.toLowerCase().includes(query.toLowerCase())) return
 
                 const content = await fs.promises.readFile(filePath);
 
