@@ -8,6 +8,8 @@ import express from "express";
 import cors from "cors";
 import multer from 'multer';
 
+import ip from 'ip';
+
 const argv = yargs(hideBin(process.argv))
     .option('port', {
         alias: 'p',
@@ -241,5 +243,6 @@ app.post('/upload', upload.array('file'), async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server listening on ${port}`)
+    console.log(`Server listening on:`)
+    console.log(`http://${ip.address()}:${port}`);
 })

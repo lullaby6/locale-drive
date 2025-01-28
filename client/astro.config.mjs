@@ -11,4 +11,7 @@ export default defineConfig({
   },
   integrations: [react()],
   outDir: "../public",
+  server: {
+    port: 3001
+  }
 });

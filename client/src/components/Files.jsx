@@ -7,6 +7,9 @@ import {formatBytes} from '@/utils/file'
 
 import "@/styles/global.css"
 
+import { Toaster } from "@/utils/toaster/toaster.js"
+import "@/utils/toaster/toaster.css"
+
 const MODE = import.meta.env.PUBLIC_MODE
 const API_URL = MODE === "DEV" ? "http://localhost:3000" : window.location.origin
 
@@ -19,26 +22,60 @@ export default () => {
 
     const inputFilesRef = useRef(null);
 
+    useEffect(() => {
+
+    }, [])
+
     async function getFiles() {
-        let url = `${API_URL}/files`
+        try {
+            let url = `${API_URL}/files`
 
-        if (query && query.trim() !== "") url += `?q=${query}`
+            if (query && query.trim() !== "") url += `?q=${query}`
 
-        const response = await fetch(url);
-        const responseData = await response.json();
+            const response = await fetch(url);
 
-        setData(responseData);
+            if (!response.ok) {
+                let message = "Error getting files"
 
-        setFiles(responseData.files.map(file => {
-            return {
-                ...file,
-                modificationDate: new Date(file.modificationDate).toLocaleDateString() + " " + format(new Date(file.creationDate), "YYYY-MM-DD hh:mm").split(" ")[1],
-                creationDate: new Date(file.creationDate).toLocaleDateString(),
-                size: formatBytes(file.size),
+                try {
+                    const responseData = await response.json();
+
+                    message = responseData.message
+                } catch (error) {}
+
+                throw new Error(message)
             }
-        }))
 
-        setStoragePath(responseData.realPath)
+            const responseData = await response.json();
+
+            setData(responseData);
+
+            setFiles(responseData.files.map(file => {
+                return {
+                    ...file,
+                    modificationDate: new Date(file.modificationDate).toLocaleDateString() + " " + format(new Date(file.creationDate), "YYYY-MM-DD hh:mm").split(" ")[1],
+                    creationDate: new Date(file.creationDate).toLocaleDateString(),
+                    size: formatBytes(file.size),
+                }
+            }))
+
+            setStoragePath(responseData.realPath)
+        } catch (error) {
+            new Toaster({
+                type: "error",
+                title: "Error getting file",
+                text: error.message,
+                position: 'bottom-right',
+                pauseDurationOnHover: true,
+                closeOnClick: true,
+                closeOnDrag: true,
+                progressBar: true,
+                closeButton: {
+                    onlyShowOnHover: true
+                },
+            })
+        }
+
     }
 
     const [searchTimeout, setSearchTimeout] = useState(null);
@@ -74,27 +111,96 @@ export default () => {
     }, [query])
 
     async function deleteFile(fileName) {
-        const response = await fetch(`${API_URL}/file/${fileName}`, {
-            method: "DELETE"
-        });
+        try {
+            const response = await fetch(`${API_URL}/file/${fileName}`, {
+                method: "DELETE"
+            });
 
-        if (response.ok) {
-            await getFiles();
+            if (response.ok) {
+                await getFiles();
+
+                new Toaster({
+                    type: "success",
+                    text: "File deleted successfully",
+                    position: 'bottom-right',
+                    pauseDurationOnHover: true,
+                    closeOnClick: true,
+                    closeOnDrag: true,
+                    progressBar: true,
+                    closeButton: {
+                        onlyShowOnHover: true
+                    },
+                })
+
+                return
+            }
+
+            let message = "Error deleting file"
+
+            try {
+                const responseData = await response.json();
+
+                message = responseData.message
+            } catch (error) {}
+
+            throw new Error(message)
+        } catch (error) {
+            new Toaster({
+                type: "error",
+                title: "Error deleting file",
+                text: error.message,
+                position: 'bottom-right',
+                pauseDurationOnHover: true,
+                closeOnClick: true,
+                closeOnDrag: true,
+                progressBar: true,
+                closeButton: {
+                    onlyShowOnHover: true
+                },
+            })
         }
     }
 
     async function downloadFile(fileName) {
-        const response = await fetch(`${API_URL}/download/${fileName}`);
+        try {
+            const response = await fetch(`${API_URL}/download/${fileName}`);
 
-        const buffer = await response.arrayBuffer();
+            if (!response.ok) {
+                let message = "Error downloading file"
 
-        const a = document.createElement("a");
-        const blob = new Blob([buffer]);
-        a.href = URL.createObjectURL(blob);
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+                try {
+                    const responseData = await response.json();
+
+                    message = responseData.message
+                } catch (error) {}
+
+                throw new Error(message)
+            }
+
+            const buffer = await response.arrayBuffer();
+
+            const a = document.createElement("a");
+            const blob = new Blob([buffer]);
+            a.href = URL.createObjectURL(blob);
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (error) {
+            new Toaster({
+                type: "error",
+                title: "Error downloading file",
+                text: error.message,
+                position: 'bottom-right',
+                pauseDurationOnHover: true,
+                closeOnClick: true,
+                closeOnDrag: true,
+                progressBar: true,
+                closeButton: {
+                    onlyShowOnHover: true
+                },
+            })
+        }
     }
 
     const [debounceTimeouts, setDebounceTimeouts] = useState({});
@@ -111,18 +217,59 @@ export default () => {
             }
 
             const timeoutID = setTimeout(async () => {
-                const response = await fetch(`${API_URL}/rename/${fileName}`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        newFilename: newFileName
-                    })
-                });
+                try {
+                    const response = await fetch(`${API_URL}/rename/${fileName}`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            newFilename: newFileName
+                        })
+                    });
 
-                if (response.ok) {
-                    await getFiles();
+                    if (response.ok) {
+                        await getFiles();
+
+                        new Toaster({
+                            type: "success",
+                            text: "File renamed successfully",
+                            position: 'bottom-right',
+                            pauseDurationOnHover: true,
+                            closeOnClick: true,
+                            closeOnDrag: true,
+                            progressBar: true,
+                            closeButton: {
+                                onlyShowOnHover: true
+                            },
+                        })
+
+                        return
+                    }
+
+                    let message = "Error renaming file"
+
+                    try {
+                        const responseData = await response.json();
+
+                        message = responseData.message
+                    } catch (error) {}
+
+                    throw new Error(message)
+                } catch (error) {
+                    new Toaster({
+                        type: "error",
+                        title: "Error renaming file",
+                        text: error.message,
+                        position: 'bottom-right',
+                        pauseDurationOnHover: true,
+                        closeOnClick: true,
+                        closeOnDrag: true,
+                        progressBar: true,
+                        closeButton: {
+                            onlyShowOnHover: true
+                        },
+                    })
                 }
             }, debounceTimeoutDuration);
 
@@ -130,7 +277,7 @@ export default () => {
         });
     }
 
-    async function uploadFiles() {
+    async function upload() {
         const inputFile = inputFilesRef.current;
 
         inputFile.value = null;
@@ -141,18 +288,59 @@ export default () => {
     async function handleInputFilesChange(event) {
         const files = event.target.files;
 
-        for (const file of files) {
-            const formData = new FormData();
-            formData.append("file", file);
+        try {
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append("file", file);
 
-            const response = await fetch(`${API_URL}/upload`, {
-                method: "POST",
-                body: formData
-            });
+                const response = await fetch(`${API_URL}/upload`, {
+                    method: "POST",
+                    body: formData
+                });
 
-            if (response.ok) {
-                await getFiles();
+                if (response.ok) {
+                    await getFiles();
+
+                    new Toaster({
+                        type: "success",
+                        text: "File uploaded successfully",
+                        position: 'bottom-right',
+                        pauseDurationOnHover: true,
+                        closeOnClick: true,
+                        closeOnDrag: true,
+                        progressBar: true,
+                        closeButton: {
+                            onlyShowOnHover: true
+                        },
+                    })
+
+                    return
+                }
+
+                let message = "Error uploading file"
+
+                try {
+                    const responseData = await response.json();
+
+                    message = responseData.message
+                } catch (error) {}
+
+                throw new Error(message)
             }
+        } catch (error) {
+            new Toaster({
+                type: "error",
+                title: "Error uploading files",
+                text: error.message,
+                position: 'bottom-right',
+                pauseDurationOnHover: true,
+                closeOnClick: true,
+                closeOnDrag: true,
+                progressBar: true,
+                closeButton: {
+                    onlyShowOnHover: true
+                },
+            })
         }
     }
 
@@ -182,7 +370,7 @@ export default () => {
                 </div>
 
                 <div className="flex flex-col lg:flex-row justify-center items-center gap-4 w-full lg:w-fit">
-                    <button onClick={uploadFiles} className="w-full lg:w-fit cursor-pointer flex jusify-center items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 rounded shadow font-semibold">
+                    <button onClick={upload} className="w-full lg:w-fit cursor-pointer flex jusify-center items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 rounded shadow font-semibold">
                         <Upload className="size-4" />
                         Upload
                     </button>
