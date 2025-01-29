@@ -1,21 +1,33 @@
 {
   "name": "local-drive",
   "version": "1.0.0",
-  "main": "./server.js",
+  "description": "Creates a file storage server/app in a specific directory to share files within the same local network.",
+  "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node ./server.js",
-    "build": "cd local-astro-frontend/ && npm run build"
+    "start": "node server.js",
+    "build": "cd client/ && npm run build"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "local",
+    "drive",
+    "file",
+    "file-storage",
+    "storage"
+  ],
+  "author": "github.com/lullaby6",
+  "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "ip": "^2.0.1",
     "multer": "^1.4.5-lts.1",
+    "qrcode-terminal": "^0.12.0",
     "yargs": "^17.7.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lullaby6/local-drive.git"
+  },
+  "homepage": "https://github.com/lullaby6/local-drive"
 }

@@ -10,19 +10,28 @@ import multer from 'multer';
 
 import ip from 'ip';
 
+import qrcode from 'qrcode-terminal'
+
 const argv = yargs(hideBin(process.argv))
+    .command('$0 [storage]', 'Server start', (yargs) => {
+        yargs.positional('storage', {
+            describe: 'Storage path',
+            type: 'string',
+            default: './storage/'
+        })
+    })
     .option('port', {
         alias: 'p',
         type: 'number',
         description: 'El puerto para el servidor',
         default: 3000,
     })
-    .option('storage', {
-        alias: 's',
-        type: 'string',
-        description: 'Directorio donde se almacenaran los archivos',
-        default: './storage/',
-    })
+    // .option('storage', {
+    //     alias: 's',
+    //     type: 'string',
+    //     description: 'Directorio donde se almacenaran los archivos',
+    //     default: './storage/',
+    // })
     .help()
     .argv;
 
@@ -242,7 +251,16 @@ app.post('/upload', upload.array('file'), async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server listening on:`)
-    console.log(`http://${ip.address()}:${port}`);
+app.listen(port, async () => {
+    const protocol = 'http';
+
+    const URL = `${protocol}://${ip.address()}:${port}`;
+
+    console.log(`Storage path: ${path.resolve(storagePath)}`);
+
+    console.log(`Server listening on: ${URL}`);
+
+    qrcode.generate(URL, {small: true}, qrcode => {
+        console.log(qrcode)
+    });
 })
