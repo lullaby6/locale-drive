@@ -349,7 +349,7 @@ export default () => {
     }, [])
 
     return (
-        <div className="p-10 flex flex-col gap-4">
+        <div className="p-6 lg:p-10 flex flex-col gap-4">
             <input onChange={handleInputFilesChange} ref={inputFilesRef} type="file" name="files" id="files" multiple className="hidden" />
 
             <div className='border border-neutral-200 p-4 rounded shadow overflow-hidden'>
@@ -377,34 +377,20 @@ export default () => {
                 </div>
             </div>
 
-            <div className="w-full rounded shadow border border-neutral-200 p-6 overflow-x-auto">
+            <div className="w-full rounded shadow border border-neutral-200 p-4 lg:p-6 overflow-x-auto">
                 <table className="w-full overflow-x-hidden">
                     <thead>
                         <tr>
-                            <th className="min-w-[200px] lg:min-w-[400px] font-normal text-left text-nowrap pl-4 pb-1 font-semibold">Filename</th>
+                            <th className="min-w-[125px] lg:w-[150px] lg:min-w-[150px] font-normal text-center text-nowrap pb-1 font-semibold">Actions</th>
+                            <th className="lg:min-w-[400px] font-normal text-left text-nowrap pl-4 pb-1 font-semibold">Filename</th>
                             <th className="font-normal text-left text-nowrap pl-4 pb-1 font-semibold">Size</th>
                             <th className="font-normal text-left text-nowrap pl-4 pb-1 font-semibold">Last Modified</th>
                             <th className="font-normal text-left text-nowrap pl-4 pb-1 font-semibold">Creation Date</th>
-                            <th className="w-[150px] font-normal text-center text-nowrap pb-1 font-semibold">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {files.length > 0 && files.map(file => (
                             <tr key={file.filename} className="border-t border-b border-neutral-200 odd:bg-neutral-100">
-                                <td className="px-1">
-                                    <input
-                                        onChange={e => renameFile(file.filename, e.target.value)}
-                                        className='w-full focus:outline-none focus:bg-neutral-200 py-2 rounded px-2'
-                                        type="text"
-                                        defaultValue={file.filename}
-                                        placeholder='Filename'
-                                        spellCheck="false"
-                                        autoComplete='false'
-                                    />
-                                </td>
-                                <td className="pl-4 py-2">{file.size}</td>
-                                <td className="pl-4 py-2">{file.modificationDate}</td>
-                                <td className="pl-4 py-2">{file.creationDate}</td>
                                 <td className="py-2 text-center">
                                     <div className='flex justify-center items-center gap-2 w-full'>
                                         <button onClick={() => downloadFile(file.filename)} className="cursor-pointer rounded-full bg-blue-600 hover:bg-blue-700 text-white p-1.5">
@@ -422,6 +408,20 @@ export default () => {
                                         </button>
                                     </div>
                                 </td>
+                                <td className="px-1">
+                                    <input
+                                        onChange={e => renameFile(file.filename, e.target.value)}
+                                        className='w-full focus:outline-none focus:bg-neutral-200 py-2 rounded pl-3 px-2'
+                                        type="text"
+                                        defaultValue={file.filename}
+                                        placeholder='Filename'
+                                        spellCheck="false"
+                                        autoComplete='false'
+                                    />
+                                </td>
+                                <td className="pl-4 py-2 text-nowrap">{file.size}</td>
+                                <td className="pl-4 py-2 text-nowrap">{file.modificationDate}</td>
+                                <td className="pl-4 py-2 text-nowrap">{file.creationDate}</td>
                             </tr>
                         ))}
                     </tbody>
