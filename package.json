@@ -1,6 +1,6 @@
 {
-  "name": "local-drive",
-  "version": "1.0.0",
+  "name": "locale-drive",
+  "version": "1.0.1",
   "description": "Creates a file storage server/app in a specific directory to share files within the same local network.",
   "main": "server.js",
   "type": "module",
@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lullaby6/local-drive.git"
+    "url": "git+https://github.com/lullaby6/locale-drive.git"
   },
-  "homepage": "https://github.com/lullaby6/local-drive"
+  "homepage": "https://github.com/lullaby6/locale-drive"
 }
