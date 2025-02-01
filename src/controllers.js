@@ -1,81 +1,15 @@
-import fs from "fs";
-import path from "path";
+import path from 'path';
+import fs from 'fs';
 
-import yargs from "yargs";
-import {hideBin} from "yargs/helpers";
+import { storagePath } from "./config.js";
 
-import express from "express";
-import cors from "cors";
-import multer from 'multer';
-
-import ip from 'ip';
-
-import qrcode from 'qrcode-terminal'
-
-const argv = yargs(hideBin(process.argv))
-    .command('$0 [storage]', 'Server start', (yargs) => {
-        yargs.positional('storage', {
-            describe: 'Storage path',
-            type: 'string',
-            default: './storage/'
-        })
-    })
-    .option('port', {
-        alias: 'p',
-        type: 'number',
-        description: 'El puerto para el servidor',
-        default: 3000,
-    })
-    // .option('storage', {
-    //     alias: 's',
-    //     type: 'string',
-    //     description: 'Directorio donde se almacenaran los archivos',
-    //     default: './storage/',
-    // })
-    .help()
-    .argv;
-
-const port = argv.port || 3000;
-
-const storagePath = argv.storage;
-
-const app = express();
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, storagePath);
-    },
-    filename: async (req, file, cb) => {
-        const fileInfo = path.parse(file.originalname);
-        let newName = file.originalname;
-        let counter = 1;
-
-        while (fs.existsSync(path.join(storagePath, newName))) {
-            newName = `${fileInfo.name} (${counter})${fileInfo.ext}`;
-            counter++;
-        }
-
-        cb(null, newName);
-    }
-});
-
-const upload = multer({ storage });
-
-app.use(cors())
-app.use(express.json());
-
-app.use(express.static('public'));
-app.use('/storage', express.static(storagePath));
-
-if (!fs.existsSync(storagePath)) fs.mkdirSync(storagePath);
-
-app.get('/files', async (req, res) => {
+async function getFiles(req, res) {
     const query = req.query?.q || null;
 
     try {
         const dirents = await fs.promises.readdir(storagePath, { withFileTypes: true });
 
-        const filesInfo = []
+        const files = []
 
         await Promise.all(
             dirents.map(async dirent => {
@@ -88,7 +22,7 @@ app.get('/files', async (req, res) => {
 
                 const content = await fs.promises.readFile(filePath);
 
-                filesInfo.push({
+                files.push({
                     filename,
                     filePath,
                     realFilePath: path.resolve(filePath),
@@ -101,7 +35,7 @@ app.get('/files', async (req, res) => {
         );
 
         res.json({
-            files: filesInfo,
+            files,
             path: storagePath,
             realPath: path.resolve(storagePath),
         });
@@ -111,9 +45,9 @@ app.get('/files', async (req, res) => {
             error: error.message,
         });
     }
-});
+}
 
-app.get('/file/:filename', async (req, res) => {
+async function getFile(req, res) {
     const filename = req.params.filename;
     const filePath = path.join(storagePath, filename);
 
@@ -140,10 +74,10 @@ app.get('/file/:filename', async (req, res) => {
         creationDate: file.birthtime,
         modificationDate: file.mtime
     });
-})
+}
 
-app.delete('/file/:filename', async (req, res) => {
-    const filename = req.params.filename;
+async function deleteFile(req, res) {
+const filename = req.params.filename;
     const filePath = path.join(storagePath, filename);
 
     if (!fs.existsSync(filePath)) {
@@ -172,10 +106,10 @@ app.delete('/file/:filename', async (req, res) => {
             error: error.message
         });
     }
-})
+}
 
-app.get('/download/:filename', async (req, res) => {
-    const filename = req.params.filename;
+async function downloadFile(req, res) {
+const filename = req.params.filename;
     const filePath = path.join(storagePath, filename);
 
     if (!fs.existsSync(filePath)) {
@@ -205,9 +139,9 @@ app.get('/download/:filename', async (req, res) => {
             error: error.message
         });
     }
-})
+}
 
-app.put('/rename/:filename', async (req, res) => {
+async function renameFile(req, res) {
     const filename = req.params.filename;
     const newFilename = req.body.newFilename;
     const filePath = path.join(storagePath, filename);
@@ -238,9 +172,9 @@ app.put('/rename/:filename', async (req, res) => {
             error: error.message
         });
     }
-})
+}
 
-app.post('/upload', upload.array('file'), async (req, res) => {
+async function uploadFile(req, res) {
     try {
         res.json({ message: 'Archivos subidos exitosamente' });
     } catch (error) {
@@ -249,18 +183,13 @@ app.post('/upload', upload.array('file'), async (req, res) => {
             error: error.message
         });
     }
-});
+}
 
-app.listen(port, async () => {
-    const protocol = 'http';
-
-    const URL = `${protocol}://${ip.address()}:${port}`;
-
-    console.log(`Storage path: ${path.resolve(storagePath)}`);
-
-    console.log(`Server listening on: ${URL}`);
-
-    qrcode.generate(URL, {small: true}, qrcode => {
-        console.log(qrcode)
-    });
-})
+export {
+    getFiles,
+    getFile,
+    deleteFile,
+    downloadFile,
+    renameFile,
+    uploadFile
+}
