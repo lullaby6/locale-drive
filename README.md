@@ -5,8 +5,14 @@ Creates a file storage server/app in a specific directory to share files within 
 # Usage
 
 ```bash
-/npx locale-drive /path/to/storage
+npx locale-drive /path/to/storage
 ```
+
+# Screenshots
+
+![ci](https://raw.githubusercontent.com/lullaby6/locale-drive/refs/heads/main/screenshots/ci.png)
+
+![app](https://raw.githubusercontent.com/lullaby6/locale-drive/refs/heads/main/screenshots/app.png)
 
 # License
 
