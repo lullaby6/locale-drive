@@ -20,6 +20,12 @@ npx locale-drive --help
 npx locale-drive /path/to/storage
 ```
 
+or if the package is installed globally
+
+```bash
+locale-drive /path/to/storage
+```
+
 ## Screenshots
 
 ### CLI
