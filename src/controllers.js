@@ -174,7 +174,7 @@ async function renameFile(req, res) {
     }
 }
 
-async function uploadFile(req, res) {
+async function uploadFiles(req, res) {
     try {
         res.json({ message: 'Archivos subidos exitosamente' });
     } catch (error) {
@@ -191,5 +191,5 @@ export {
     deleteFile,
     downloadFile,
     renameFile,
-    uploadFile
+    uploadFiles
 }

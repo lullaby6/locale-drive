@@ -10,7 +10,7 @@ import {
     deleteFile,
     downloadFile,
     renameFile,
-    uploadFile
+    uploadFiles
 } from "./controllers.js"
 
 const storage = multer.diskStorage({
@@ -39,7 +39,7 @@ export default function routes(app) {
     app.delete('/file/:filename', deleteFile)
     app.get('/download/:filename', downloadFile)
     app.put('/rename/:filename', renameFile)
-    app.post('/upload', upload.array('file'), uploadFile)
+    app.post('/upload', upload.array('file'), uploadFiles)
 
     return app
 }
