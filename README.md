@@ -2,18 +2,34 @@
 
 Creates a file storage server/app in a specific directory to share files within the same local network.
 
-# Usage
+## Installation
+
+```bash
+npm install -g locale-drive
+```
+
+## Help
+
+```bash
+npx locale-drive --help
+```
+
+## Usage
 
 ```bash
 npx locale-drive /path/to/storage
 ```
 
-# Screenshots
+## Screenshots
 
-![ci](https://raw.githubusercontent.com/lullaby6/locale-drive/refs/heads/main/screenshots/ci.png)
+### CLI
+
+![cli](https://raw.githubusercontent.com/lullaby6/locale-drive/refs/heads/main/screenshots/ci.png)
+
+### Client
 
 ![app](https://raw.githubusercontent.com/lullaby6/locale-drive/refs/heads/main/screenshots/app.png)
 
-# License
+## License
 
 MIT

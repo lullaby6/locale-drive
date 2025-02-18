@@ -1,6 +1,6 @@
 {
   "name": "locale-drive",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Creates a file storage server/app in a specific directory to share files within the same local network.",
   "main": "./src/index.js",
   "type": "module",
@@ -33,6 +33,6 @@
   },
   "homepage": "https://github.com/lullaby6/locale-drive",
   "bin": {
-    "locale-drive": "./src/index.js"
+    "locale-drive": "./executable.bat"
   }
 }
