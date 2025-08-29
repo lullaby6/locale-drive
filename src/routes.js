@@ -5,6 +5,7 @@ import fs from 'fs';
 import { storagePath } from "./config.js";
 
 import {
+    openStoragePath,
     getFiles,
     getFile,
     deleteFile,
@@ -34,6 +35,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 export default function routes(app) {
+    app.get('/open', openStoragePath)
     app.get('/files', getFiles)
     app.get('/file/:filename', getFile)
     app.delete('/file/:filename', deleteFile)

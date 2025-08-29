@@ -6,7 +6,7 @@ const argv = yargs(hideBin(process.argv))
         yargs.positional('storage', {
             describe: 'Storage path',
             type: 'string',
-            default: './'
+            default: './storage'
         })
     })
     .option('port', {

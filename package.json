@@ -1,6 +1,6 @@
 {
   "name": "locale-drive",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "Creates a file storage server/app in a specific directory to share files within the same local network.",
   "main": "./src/index.js",
   "type": "module",
@@ -23,6 +23,7 @@
     "express": "^4.21.2",
     "ip": "^2.0.1",
     "multer": "^1.4.5-lts.1",
+    "open": "^10.2.0",
     "qrcode-terminal": "^0.12.0",
     "yargs": "^17.7.2"
   },

@@ -1,7 +1,51 @@
 import path from 'path';
 import fs from 'fs';
+// import os from 'os';
+// import { exec } from 'child_process';
+import open from 'open';
 
 import { storagePath } from "./config.js";
+
+// function openDir(path) {
+//     return new Promise((resolve, reject) => {
+//         const platform = os.platform();
+//         let cmd;
+
+//         if (platform === "win32") {
+//             cmd = `start "" "${path}"`;
+//         } else if (platform === "darwin") {
+//             cmd = `open "${path}"`;
+//         } else {
+//             cmd = `xdg-open "${path}"`;
+//         }
+
+//         exec(cmd, (err) => {
+//             if (err) {
+//                 return reject(err);
+//             }
+
+//             // console.log(`Opened ${path}`);
+
+//             resolve();
+//         });
+//     });
+// }
+
+async function openStoragePath(req, res) {
+    try {
+        // openDir(path.resolve(storagePath));
+        open(path.resolve(storagePath));
+
+        res.status(200).json({
+            message: "Storage path opened successfully",
+        })
+    } catch (error) {
+        res.status(500).json({
+            message: "Error opening storage path",
+            error: error.message,
+        });
+    }
+}
 
 async function getFiles(req, res) {
     const query = req.query?.q || null;
@@ -26,7 +70,7 @@ async function getFiles(req, res) {
                     filename,
                     filePath,
                     realFilePath: path.resolve(filePath),
-                    content: content.toString(),
+                    // content: content.toString(),
                     size: content.byteLength,
                     creationDate: stats.birthtime,
                     modificationDate: stats.mtime,
@@ -186,6 +230,7 @@ async function uploadFiles(req, res) {
 }
 
 export {
+    openStoragePath,
     getFiles,
     getFile,
     deleteFile,

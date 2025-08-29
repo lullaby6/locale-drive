@@ -7,6 +7,7 @@ import express from "express";
 import cors from "cors";
 import ip from 'ip';
 import qrcode from 'qrcode-terminal'
+import open from 'open';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,4 +42,6 @@ app.listen(port, async () => {
     qrcode.generate(URL, {small: true}, qrcode => {
         console.log(qrcode)
     });
+
+    open(URL);
 })

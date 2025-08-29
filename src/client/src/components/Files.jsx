@@ -1,5 +1,20 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, File, Folder, EllipsisVertical, Download, Trash2, ExternalLink, Upload, XIcon } from 'lucide-react'
+import {
+    Search,
+    File,
+    Folder,
+    EllipsisVertical,
+    Download,
+    Trash2,
+    ExternalLink,
+    Upload,
+    XIcon,
+    LoaderCircle,
+    ArrowDownUp,
+    ArrowDownWideNarrow,
+    ArrowUpNarrowWide,
+    RefreshCcw
+} from 'lucide-react'
 
 import { format } from "@formkit/tempo"
 
@@ -17,16 +32,17 @@ export default () => {
     const [data, setData] = useState({});
     const [files, setFiles] = useState([]);
     const [storagePath, setStoragePath] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const [query, setQuery] = useState("");
 
     const inputFilesRef = useRef(null);
 
-    useEffect(() => {
-
-    }, [])
-
     async function getFiles() {
+        if (loading) returns
+
+        setLoading(true);
+
         try {
             let url = `${API_URL}/files`
 
@@ -76,6 +92,7 @@ export default () => {
             })
         }
 
+        setLoading(false);
     }
 
     const [searchTimeout, setSearchTimeout] = useState(null);
@@ -107,10 +124,15 @@ export default () => {
     }
 
     useEffect(() => {
+        console.log('Query', query);
+        
+
         getFiles();
     }, [query])
 
     async function deleteFile(fileName) {
+        setLoading(true);
+
         try {
             const response = await fetch(`${API_URL}/file/${fileName}`, {
                 method: "DELETE"
@@ -159,9 +181,13 @@ export default () => {
                 },
             })
         }
+
+        setLoading(false);
     }
 
     async function downloadFile(fileName) {
+        setLoading(true);
+
         try {
             const response = await fetch(`${API_URL}/download/${fileName}`);
 
@@ -201,12 +227,16 @@ export default () => {
                 },
             })
         }
+
+        setLoading(false);
     }
 
     const [debounceTimeouts, setDebounceTimeouts] = useState({});
     const debounceTimeoutDuration = 1000;
 
     async function renameFile(fileName, newFileName) {
+        setLoading(true);
+
         if (newFileName === fileName || newFileName.trim() === "") {
             return;
         }
@@ -275,6 +305,8 @@ export default () => {
 
             return { ...prevTimeouts, [fileName]: timeoutID };
         });
+
+        setLoading(false);
     }
 
     async function upload() {
@@ -286,6 +318,8 @@ export default () => {
     }
 
     async function handleInputFilesChange(event) {
+        setLoading(true);
+
         const files = event.target.files;
 
         try {
@@ -342,6 +376,38 @@ export default () => {
                 },
             })
         }
+
+        setLoading(false);
+    }
+
+    async function openStoragePath() {
+        setLoading(true);
+
+        try {
+            const response = await fetch(`${API_URL}/open`, {
+                method: "GET"
+            });
+
+            if (!response.ok) {
+                throw new Error("Error opening storage path")
+            }
+        } catch (error) {
+            new Toaster({
+                type: "error",
+                title: "Error opening storage path",
+                text: error.message,
+                position: 'bottom-right',
+                pauseDurationOnHover: true,
+                closeOnClick: true,
+                closeOnDrag: true,
+                progressBar: true,
+                closeButton: {
+                    onlyShowOnHover: true
+                },
+            })
+        }
+
+        setLoading(false);
     }
 
     useEffect(() => {
@@ -350,11 +416,26 @@ export default () => {
 
     return (
         <div className="p-6 lg:p-10 flex flex-col gap-4">
+            {loading && (
+                <div className='fixed top-0 left-0 w-screen h-screen z-100 flex justify-center items-center'>
+                    <div className='absolute top-0 left-0 w-screen h-screen bg-black opacity-50'></div>
+
+                    <RefreshCcw className="animate-spin text-white text-4xl size-10" />
+                </div>
+            )}
+
             <input onChange={handleInputFilesChange} ref={inputFilesRef} type="file" name="files" id="files" multiple className="hidden" />
 
-            <div className='border border-neutral-200 p-4 rounded shadow overflow-hidden'>
-                <p className='text-sm text-neutral-500'>Storage Path:</p>
-                <p className='font-semibold'>{storagePath}</p>
+            <div className='border border-neutral-200 p-4 rounded shadow overflow-hidden flex flex-col gap-2 sm:flex-row justify-between'>
+                <div>
+                    <p className='text-sm text-neutral-500'>Storage Path:</p>
+                    <p className='font-semibold'>{storagePath}</p>
+                </div>
+
+                <button onClick={openStoragePath} disabled={loading} className="w-full lg:w-fit cursor-pointer flex jusify-center items-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded shadow font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-opacity">
+                    <ExternalLink className="size-4" />
+                    Open
+                </button>
             </div>
 
             <div className="w-full flex flex-col lg:flex-row gap-4 lg:gap-0 justify-between items-center">
@@ -362,15 +443,20 @@ export default () => {
                     <span className='mx-2'>
                         <Search className="text-neutral-700" />
                     </span>
-                    <input ref={searchRef} onChange={handleSearch} defaultValue={query} className="py-2 focus:outline-none w-full" type="search" placeholder="Search files..." spellCheck="false" autoComplete="false" />
+                    <input ref={searchRef} onChange={handleSearch} defaultValue={query} disabled={loading} className="py-2 focus:outline-none w-full disabled:opacity-50 disabled:cursor-not-allowed transition-opacity" type="search" placeholder="Search files..." spellCheck="false" autoComplete="false" />
 
                     {searchRef.current?.value.trim() !== "" && <button onClick={clearQuery} className='absolute top-0 right-0 m-2 cursor-pointer'>
                         <XIcon className="h-6 text-neutral-700 opacity-50 hover:opacity-100 transition-opacity" />
                     </button>}
                 </div>
 
-                <div className="flex flex-col lg:flex-row justify-center items-center gap-4 w-full lg:w-fit">
-                    <button onClick={upload} className="w-full lg:w-fit cursor-pointer flex jusify-center items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 rounded shadow font-semibold">
+                <div className="flex flex-col lg:flex-row justify-center items-center gap-2 sm:gap-4 w-full lg:w-fit">
+                    <button onClick={getFiles} disabled={loading} className="w-full lg:w-fit cursor-pointer flex jusify-center items-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded shadow font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-opacity">
+                        <RefreshCcw className="size-4" />
+                        Reload
+                    </button>
+
+                    <button onClick={upload} disabled={loading} className="w-full lg:w-fit cursor-pointer flex jusify-center items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 rounded shadow font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-opacity">
                         <Upload className="size-4" />
                         Upload
                     </button>
@@ -393,17 +479,17 @@ export default () => {
                             <tr key={file.filename} className="border-t border-b border-neutral-200 odd:bg-neutral-100">
                                 <td className="py-2 text-center">
                                     <div className='flex justify-center items-center gap-2 w-full'>
-                                        <button onClick={() => downloadFile(file.filename)} className="cursor-pointer rounded-full bg-blue-600 hover:bg-blue-700 text-white p-1.5">
+                                        <button onClick={() => downloadFile(file.filename)} disabled={loading} className="cursor-pointer rounded-full bg-blue-600 hover:bg-blue-700 text-white p-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity">
                                             <Download className="size-4" />
                                         </button>
 
                                         <a href={`${API_URL}/storage/${file.filename}`} target="_blank">
-                                            <button className="cursor-pointer rounded-full bg-cyan-500 hover:bg-cyan-600 text-white p-1.5">
+                                            <button disabled={loading} className="cursor-pointer rounded-full bg-cyan-500 hover:bg-cyan-600 text-white p-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity">
                                                 <ExternalLink className="size-4" />
                                             </button>
                                         </a>
 
-                                        <button onClick={() => deleteFile(file.filename)} className="cursor-pointer rounded-full bg-red-500 hover:bg-red-600 text-white p-1.5">
+                                        <button onClick={() => deleteFile(file.filename)} disabled={loading} className="cursor-pointer rounded-full bg-red-500 hover:bg-red-600 text-white p-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity">
                                             <Trash2 className="size-4" />
                                         </button>
                                     </div>
