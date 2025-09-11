@@ -1,0 +1,20 @@
+---
+import "@/styles/global.css";
+
+import Files from "@/components/Files.jsx";
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=2.0">
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+	<meta name="generator" content={Astro.generator} />
+	<title>Locale Drive</title>
+</head>
+<body>
+	<span class="hidden"></span>
+    <Files client:only />
+</body>
+</html>

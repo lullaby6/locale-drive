@@ -1,35 +1,8 @@
 import path from 'path';
 import fs from 'fs';
-// import os from 'os';
-// import { exec } from 'child_process';
 import open from 'open';
 
 import { storagePath } from "./config.js";
-
-// function openDir(path) {
-//     return new Promise((resolve, reject) => {
-//         const platform = os.platform();
-//         let cmd;
-
-//         if (platform === "win32") {
-//             cmd = `start "" "${path}"`;
-//         } else if (platform === "darwin") {
-//             cmd = `open "${path}"`;
-//         } else {
-//             cmd = `xdg-open "${path}"`;
-//         }
-
-//         exec(cmd, (err) => {
-//             if (err) {
-//                 return reject(err);
-//             }
-
-//             // console.log(`Opened ${path}`);
-
-//             resolve();
-//         });
-//     });
-// }
 
 async function openStoragePath(req, res) {
     try {
@@ -187,7 +160,7 @@ const filename = req.params.filename;
 
 async function renameFile(req, res) {
     const filename = req.params.filename;
-    const newFilename = req.body.newFilename;
+    const newFilename = req.body.new_filename;
     const filePath = path.join(storagePath, filename);
 
     if (!fs.existsSync(filePath)) {

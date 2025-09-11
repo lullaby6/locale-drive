@@ -1,5 +1,5 @@
 import yargs from "yargs";
-import {hideBin} from "yargs/helpers";
+import { hideBin } from "yargs/helpers";
 
 const argv = yargs(hideBin(process.argv))
     .command('$0 [storage]', 'Server start', (yargs) => {
