@@ -171,12 +171,12 @@ export default () => {
 
 	function renderSortIcon(column) {
 		if (sortBy !== column) {
-			return <ArrowDownUp className="size-4 opacity-50 hover:opacity-100 transition-opacity" />;
+			return <ArrowDownUp className="size-4 opacity-50 hover:opacity-100 transition-opacity cursor-pointer" />;
 		}
 		return orderBy === "asc" ? (
-			<ArrowUpNarrowWide className="size-4" />
+			<ArrowUpNarrowWide className="size-4 cursor-pointer" />
 		) : (
-			<ArrowDownNarrowWide className="size-4" />
+			<ArrowDownNarrowWide className="size-4 cursor-pointer" />
 		);
 	}
 
