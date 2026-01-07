@@ -38,6 +38,6 @@
     "bin": "./src"
   },
   "bin": {
-    "locale-drive": "./src/index.js"
+    "locale-drive": "src/index.js"
   }
 }
