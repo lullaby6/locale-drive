@@ -22,11 +22,12 @@ async function openStoragePath(req, res) {
 
 async function getFiles(req, res) {
     const query = req.query?.q || null;
+    const sort = req.query?.sort || 'modificationDate';
+    const order = req.query?.order || 'desc';
 
     try {
         const dirents = await fs.promises.readdir(storagePath, { withFileTypes: true });
-
-        const files = []
+        const files = [];
 
         await Promise.all(
             dirents.map(async dirent => {
@@ -34,22 +35,41 @@ async function getFiles(req, res) {
                 const filePath = path.join(storagePath, filename);
                 const stats = await fs.promises.stat(filePath);
 
-                if (dirent.isDirectory()) return
-                if (query && !filename.toLowerCase().includes(query.toLowerCase())) return
-
-                const content = await fs.promises.readFile(filePath);
+                if (dirent.isDirectory()) return;
+                if (query && !filename.toLowerCase().includes(query.toLowerCase())) return;
 
                 files.push({
                     filename,
                     filePath,
                     realFilePath: path.resolve(filePath),
-                    // content: content.toString(),
-                    size: content.byteLength,
+                    size: stats.size,
                     creationDate: stats.birthtime,
                     modificationDate: stats.mtime,
                 });
             })
         );
+
+        files.sort((a, b) => {
+            let comparison = 0;
+
+            switch (sort) {
+                case 'filename':
+                    comparison = a.filename.localeCompare(b.filename, undefined, { numeric: true, sensitivity: 'base' });
+                    break;
+                case 'size':
+                    comparison = a.size - b.size;
+                    break;
+                case 'creationDate':
+                    comparison = a.creationDate - b.creationDate;
+                    break;
+                case 'modificationDate':
+                default:
+                    comparison = a.modificationDate - b.modificationDate;
+                    break;
+            }
+
+            return order === 'desc' ? comparison * -1 : comparison;
+        });
 
         res.json({
             files,
@@ -94,7 +114,7 @@ async function getFile(req, res) {
 }
 
 async function deleteFile(req, res) {
-const filename = req.params.filename;
+    const filename = req.params.filename;
     const filePath = path.join(storagePath, filename);
 
     if (!fs.existsSync(filePath)) {
@@ -126,7 +146,7 @@ const filename = req.params.filename;
 }
 
 async function downloadFile(req, res) {
-const filename = req.params.filename;
+    const filename = req.params.filename;
     const filePath = path.join(storagePath, filename);
 
     if (!fs.existsSync(filePath)) {

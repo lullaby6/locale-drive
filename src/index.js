@@ -5,7 +5,7 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import express from "express";
 import cors from "cors";
-import ip from 'ip';
+import os from "os";
 import qrcode from 'qrcode-terminal'
 import open from 'open';
 
@@ -30,18 +30,37 @@ if (!fs.existsSync(storagePath)) fs.mkdirSync(storagePath);
 
 routes(app);
 
+function getLocalIP() {
+    const interfaces = os.networkInterfaces();
+
+    for (const name of Object.keys(interfaces)) {
+        for (const iface of interfaces[name]) {
+            if (iface.family === 'IPv4' && !iface.internal) {
+
+                if (iface.address.startsWith('192.168.')) {
+                    return iface.address;
+                }
+            }
+        }
+    }
+
+    return '127.0.0.1';
+}
+
 app.listen(port, async () => {
     const protocol = 'http';
 
-    const URL = `${protocol}://${ip.address()}:${port}`;
+    const IP = getLocalIP();
+
+    const URL = `${protocol}://${IP}:${port}`;
 
     console.log(`Storage path: ${path.resolve(storagePath)}`);
 
     console.log(`Server listening on: ${URL}`);
 
-    qrcode.generate(URL, {small: true}, qrcode => {
+    qrcode.generate(URL, { small: true }, qrcode => {
         console.log(qrcode)
     });
 
     open(URL);
-})
+});
