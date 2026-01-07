@@ -6,7 +6,6 @@ import { storagePath } from "./config.js";
 
 async function openStoragePath(req, res) {
     try {
-        // openDir(path.resolve(storagePath));
         open(path.resolve(storagePath));
 
         res.status(200).json({
