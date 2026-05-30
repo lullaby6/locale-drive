@@ -38,4 +38,4 @@ locale-drive /path/to/storage
 
 ## License
 
-MIT
+[MIT](https://github.com/lullaby6/locale-drive/blob/main/LICENSE)
