@@ -1,6 +1,6 @@
 # Locale Drive
 
-Creates a file storage server/app in a specific directory to share files within the same local network.
+A web-based app to share and transfer files across your local network, like a "Google Drive" for your LAN, built with Express.js and React.
 
 ## Installation
 
