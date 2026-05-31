@@ -6,7 +6,7 @@ export default () => {
 	const THEMES = Object.freeze({
 		DEVICE: "device",
 		LIGHT: "light",
-		DARK: "black",
+		DARK: "dark",
 	});
 
 	const [theme, setTheme] = useState(getTheme());

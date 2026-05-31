@@ -2,6 +2,7 @@ import { useRef } from "react";
 import type { ChangeEvent, JSX } from "react";
 
 import { Icon } from "@iconify/react";
+import { Tooltip } from "react-tooltip";
 
 import { API_URL } from "@/services/files";
 import useGlobalStore from "@/store/global";
@@ -72,7 +73,8 @@ function Row({ file }: { file: FileItem }): JSX.Element {
 								src={fileUrl}
 								alt={file.filename}
 								loading="lazy"
-								className="size-12 object-cover"
+								className="size-12 object-cover select-none pointer-events-none"
+								draggable={false}
 							/>
 						</a>
 					) : (
@@ -89,6 +91,8 @@ function Row({ file }: { file: FileItem }): JSX.Element {
 						disabled={loading}
 						className="btn btn-circle btn-sm btn-primary action-btn"
 						aria-label="Download"
+						data-tooltip-id="actions-tooltip"
+						data-tooltip-content="Download"
 					>
 						<Icon icon="tabler:download" width="1em" height="1em" />
 					</button>
@@ -99,6 +103,8 @@ function Row({ file }: { file: FileItem }): JSX.Element {
 						rel="noreferrer"
 						className="btn btn-circle btn-sm btn-info action-btn"
 						aria-label="Open in new tab"
+						data-tooltip-id="actions-tooltip"
+						data-tooltip-content="Open"
 					>
 						<Icon icon="tabler:external-link" width="1em" height="1em" />
 					</a>
@@ -108,6 +114,8 @@ function Row({ file }: { file: FileItem }): JSX.Element {
 						disabled={loading}
 						className="btn btn-circle btn-sm btn-error action-btn"
 						aria-label="Delete"
+						data-tooltip-id="actions-tooltip"
+						data-tooltip-content="Delete"
 					>
 						<Icon icon="tabler:trash" width="1em" height="1em" />
 					</button>
@@ -138,7 +146,7 @@ export default (): JSX.Element => {
 	const setSort = useGlobalStore(state => state.setSort);
 
 	return (
-		<div className="rounded shadow-sm border border-base-200 bg-base-300 p-4 overflow-x-auto">
+		<div className="rounded shadow-sm border border-base-300 bg-base-100 p-2 overflow-x-auto">
 			<table className="table table-xs">
 				<thead>
 					<tr>
@@ -173,6 +181,8 @@ export default (): JSX.Element => {
 					No files found.
 				</p>
 			)}
+
+			<Tooltip id="actions-tooltip" />
 		</div>
 	);
 };

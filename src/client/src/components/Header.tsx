@@ -12,8 +12,8 @@ export default (): JSX.Element => {
 	const openStorage = useGlobalStore(state => state.openStorage);
 
 	return (
-		<div className="flex justify-between items-center gap-3 p-4 rounded shadow-sm border border-base-200 bg-base-300">
-			<div className="flex items-center gap-3 pr-3 rounded bg-base-200 overflow-hidden">
+		<div className="flex flex-col sm:flex-row justify-between items-center gap-3 p-4 rounded shadow-sm border border-base-300 bg-base-100">
+			<div className="w-full sm:w-auto flex items-center gap-3 pr-3 rounded bg-base-200 overflow-hidden">
 				<button
 					className="btn btn-primary"
 					onClick={openStorage}

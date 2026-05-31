@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { ChangeEvent, JSX } from "react";
 
 import { Icon } from "@iconify/react";
@@ -13,12 +13,16 @@ export default (): JSX.Element => {
 	const fetchFiles = useGlobalStore(state => state.fetchFiles);
 	const uploadFiles = useGlobalStore(state => state.uploadFiles);
 
+	const [hasValue, setHasValue] = useState(false);
+
 	const searchRef = useRef<HTMLInputElement>(null);
 	const inputFilesRef = useRef<HTMLInputElement>(null);
 	const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	function handleSearch(event: ChangeEvent<HTMLInputElement>) {
 		const value = event.target.value.trim();
+
+		setHasValue(event.target.value !== "");
 
 		if (searchTimeout.current) clearTimeout(searchTimeout.current);
 
@@ -32,6 +36,7 @@ export default (): JSX.Element => {
 
 		if (searchTimeout.current) clearTimeout(searchTimeout.current);
 
+		setHasValue(false);
 		setQuery("");
 	}
 
@@ -51,7 +56,7 @@ export default (): JSX.Element => {
 	}
 
 	return (
-		<div className="flex flex-col lg:flex-row justify-between items-center gap-3 p-4 rounded shadow-sm border border-base-200 bg-base-300">
+		<div className="flex flex-col lg:flex-row justify-between items-center gap-3 p-4 rounded shadow-sm border border-base-300 bg-base-100">
 			<input
 				ref={inputFilesRef}
 				onChange={handleInputFilesChange}
@@ -79,13 +84,15 @@ export default (): JSX.Element => {
 					spellCheck={false}
 					autoComplete="off"
 				/>
-				<button
-					onClick={clearQuery}
-					className="cursor-pointer opacity-50 hover:opacity-100 transition-opacity"
-					aria-label="Clear search"
-				>
-					<Icon icon="tabler:x" width="1em" height="1em" />
-				</button>
+				{hasValue && (
+					<button
+						onClick={clearQuery}
+						className="cursor-pointer opacity-50 hover:opacity-100 transition-opacity"
+						aria-label="Clear search"
+					>
+						<Icon icon="tabler:x" className="text-xl" />
+					</button>
+				)}
 			</label>
 
 			<div className="flex flex-col lg:flex-row items-center gap-3 w-full lg:w-fit">

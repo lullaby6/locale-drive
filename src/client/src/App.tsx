@@ -32,7 +32,7 @@ export default () => {
 	}, [silentRefresh]);
 
 	return (
-		<main className="flex flex-col gap-5 p-6 lg:p-10">
+		<main className="flex flex-col gap-5 p-6 lg:p-10 bg-base-300 min-h-screen">
 			{loading && (
 				<div className="fixed inset-0 z-50 flex justify-center items-center bg-black/50">
 					<span className="loading loading-spinner loading-lg text-primary"></span>
