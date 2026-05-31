@@ -1,6 +1,4 @@
 src/client/
-src/client-2/
-src/locale-drive/
 storage/
 .gitignore
-README.md
+screenshots/

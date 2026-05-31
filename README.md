@@ -20,7 +20,7 @@ npx locale-drive --help
 npx locale-drive /path/to/storage
 ```
 
-If the package is installed globally
+If the package is installed globally:
 
 ```bash
 locale-drive /path/to/storage
