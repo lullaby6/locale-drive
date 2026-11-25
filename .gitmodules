@@ -1,0 +1,3 @@
+[submodule "locale-drive-frontend"]
+	path = locale-drive-frontend
+	url = https://github.com/lullaby6/locale-drive-frontend.git
