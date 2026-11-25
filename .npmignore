@@ -1,4 +1,5 @@
-src/client/
+locale-drive-frontend/
+.gitmodules
 storage/
 .gitignore
 screenshots/

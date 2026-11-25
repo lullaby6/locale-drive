@@ -6,8 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "node ./src/index.js",
-    "dev": "concurrently -n api,web -c blue,magenta \"node --watch ./src/index.js --no-open\" \"npm --prefix ./src/client run dev\"",
-    "build": "cd ./src/client/ && npm run build",
+    "dev": "concurrently -n api,web -c blue,magenta \"node --watch ./src/index.js --port 24680 --no-open\" \"npm --prefix ./locale-drive-frontend run dev\"",
+    "build": "npm --prefix ./locale-drive-frontend run build -- --outDir ../src/public --emptyOutDir",
+    "setup": "git submodule update --init && npm install && npm install --prefix ./locale-drive-frontend",
     "publish": "npm publish --access=public"
   },
   "keywords": [

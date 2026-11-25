@@ -1,7 +1,7 @@
 import path from 'path';
 import open from 'open';
 
-import { maxUploadBytes, port } from './config.js';
+import { maxUploadBytes, runtime } from './config.js';
 import { asyncHandler } from './utils/async-handler.js';
 import { getLocalIP } from './utils/utils.js';
 import { statExistingDir } from './utils/storage.js';
@@ -18,7 +18,8 @@ function getPaths(req) {
 
 const getInfo = (req, res) => {
     res.json({
-        url: `http://${getLocalIP()}:${port}`,
+        // The port actually in use, which may not be the configured one (see start() in index.js).
+        url: `http://${getLocalIP()}:${runtime.port}`,
         maxUploadBytes,
     });
 };
