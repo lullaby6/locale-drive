@@ -1,188 +1,204 @@
-import { useRef } from "react";
-import type { ChangeEvent, JSX } from "react";
+import type { JSX, MouseEvent } from "react";
 
 import { Icon } from "@iconify/react";
-import { Tooltip } from "react-tooltip";
 
-import { API_URL } from "@/services/files";
+import Checkbox from "@/components/Checkbox";
+import Thumbnail from "@/components/Thumbnail";
+import { useDraggableEntry, useFolderDropTarget } from "@/hooks/useEntryDrag";
+import { useT } from "@/i18n";
 import useGlobalStore from "@/store/global";
-import { isImage } from "@/utils/utils";
+import { formatBytes, formatDate } from "@/utils/utils";
 
-import type { FileItem, SortBy } from "@/types";
+import type { Translations } from "@/languages/en";
+import type { Entry, Order, SortBy } from "@/types";
 
-const RENAME_DEBOUNCE = 1000;
-
-const COLUMNS: { key: SortBy; label: string }[] = [
-	{ key: "filename", label: "Filename" },
-	{ key: "size", label: "Size" },
-	{ key: "modificationDate", label: "Last Modified" },
-	{ key: "creationDate", label: "Creation Date" },
+const COLUMNS: { key: SortBy; label: keyof Translations["columns"]; className?: string }[] = [
+	{ key: "filename", label: "name" },
+	{ key: "size", label: "size" },
+	{ key: "modificationDate", label: "modified", className: "hidden md:table-cell" },
+	{ key: "creationDate", label: "created", className: "hidden xl:table-cell" },
 ];
 
-function SortIcon({ active, order }: { active: boolean; order: "asc" | "desc" }) {
+function SortIcon({ active, order }: { active: boolean; order: Order }) {
 	if (!active) {
-		return (
-			<Icon
-				icon="tabler:arrows-sort"
-				width="1em"
-				height="1em"
-				className="text-base opacity-50"
-			/>
-		);
+		return <Icon icon="tabler:selector" width="1em" height="1em" className="text-sm opacity-50" />;
 	}
 
 	return (
 		<Icon
-			icon={order === "asc" ? "tabler:sort-ascending" : "tabler:sort-descending"}
+			icon={order === "asc" ? "tabler:chevron-up" : "tabler:chevron-down"}
 			width="1em"
 			height="1em"
-			className="text-base"
+			className="text-sm text-primary"
 		/>
 	);
 }
 
-function Row({ file }: { file: FileItem }): JSX.Element {
-	const loading = useGlobalStore(state => state.loading);
-	const downloadFile = useGlobalStore(state => state.downloadFile);
-	const removeFile = useGlobalStore(state => state.removeFile);
-	const renameFile = useGlobalStore(state => state.renameFile);
+/** Stops the click from also toggling the row selection. */
+function stop(event: MouseEvent) {
+	event.stopPropagation();
+}
 
-	const renameTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+function ActionButton({ icon, label, onClick, danger = false }: { icon: string; label: string; onClick: () => void; danger?: boolean }) {
+	return (
+		<button
+			onClick={onClick}
+			className={`btn btn-ghost btn-circle btn-sm opacity-60 hover:opacity-100 ${danger ? "hover:text-error" : ""}`}
+			aria-label={label}
+			data-tooltip-id="tooltip"
+			data-tooltip-content={label}
+		>
+			<Icon icon={icon} width="1em" height="1em" className="text-lg" />
+		</button>
+	);
+}
 
-	const fileUrl = `${API_URL}/storage/${encodeURIComponent(file.filename)}`;
+function Row({ entry, searching }: { entry: Entry; searching: boolean }): JSX.Element {
+	const t = useT();
+	const selected = useGlobalStore(state => state.selected.includes(entry.path));
+	const isDragged = useGlobalStore(state => state.dragging.includes(entry.path));
+	const toggleSelected = useGlobalStore(state => state.toggleSelected);
+	const clickSelect = useGlobalStore(state => state.clickSelect);
+	const hasCursor = useGlobalStore(state => state.cursorVisible && state.cursor === entry.path);
+	const openEntry = useGlobalStore(state => state.openEntry);
+	const download = useGlobalStore(state => state.download);
+	const openDialog = useGlobalStore(state => state.openDialog);
+	const navigate = useGlobalStore(state => state.navigate);
 
-	function handleRename(event: ChangeEvent<HTMLInputElement>) {
-		const newFilename = event.target.value;
+	const isFolder = entry.type === "folder";
+	const dragProps = useDraggableEntry(entry);
+	const { isOver, dropProps } = useFolderDropTarget(entry.path);
 
-		if (newFilename === file.filename || newFilename.trim() === "") return;
-
-		if (renameTimeout.current) clearTimeout(renameTimeout.current);
-
-		renameTimeout.current = setTimeout(() => {
-			renameFile(file.filename, newFilename);
-		}, RENAME_DEBOUNCE);
-	}
+	const rowState = isOver
+		? "bg-primary/15 outline-2 -outline-offset-2 outline-primary"
+		: selected
+			? "bg-primary/10"
+			: "hover:bg-base-content/[0.03]";
+	const cursorRing = hasCursor && !isOver ? "outline-2 -outline-offset-2 outline-primary/70" : "";
 
 	return (
-		<tr>
-			<td>
-				<div className="flex justify-center items-center">
-					{isImage(file.filename) ? (
-						<a href={fileUrl} target="_blank" rel="noreferrer">
-							<img
-								src={fileUrl}
-								alt={file.filename}
-								loading="lazy"
-								className="size-12 object-cover select-none pointer-events-none"
-								draggable={false}
-							/>
-						</a>
-					) : (
-						<div className="flex justify-center items-center size-12 bg-base-200 text-base-content/50">
-							<Icon icon="tabler:file" width="1.5em" height="1.5em" />
-						</div>
-					)}
+		<tr
+			data-entry-path={entry.path}
+			onClick={event => clickSelect(entry.path, event)}
+			onDoubleClick={() => openEntry(entry)}
+			// A selected row can be dragged from anywhere (moves the whole selection);
+			// an unselected one only from its name, so the rest of the row starts a selection box.
+			{...(selected ? dragProps : {})}
+			{...(isFolder ? dropProps : {})}
+			className={`select-none transition-colors ${selected ? "cursor-grab active:cursor-grabbing" : "cursor-default"} ${rowState} ${cursorRing} ${isDragged ? "opacity-40" : ""}`}
+		>
+			<td className="w-0" onClick={stop}>
+				<Checkbox checked={selected} onChange={() => toggleSelected(entry.path)} label={t.entries.select(entry.name)} />
+			</td>
+
+			<td className="max-w-0 w-full">
+				{/* The name area is the drag handle; the rest of the row starts a selection box. */}
+				<div {...(selected ? {} : dragProps)} className="flex items-center gap-3 min-w-48 w-fit max-w-full cursor-grab active:cursor-grabbing">
+					<Thumbnail entry={entry} className="size-9 rounded-field bg-base-content/5" />
+
+					<div className="flex flex-col min-w-0">
+						<button
+							onClick={event => {
+								stop(event);
+								openEntry(entry);
+							}}
+							className="text-left text-sm font-medium truncate cursor-pointer hover:text-primary hover:underline"
+							title={entry.name}
+						>
+							{entry.name}
+						</button>
+
+						{searching && (
+							<button
+								onClick={event => {
+									stop(event);
+									navigate(entry.parent);
+								}}
+								className="flex items-center gap-1 text-left text-xs opacity-60 truncate cursor-pointer hover:opacity-100"
+								title={t.location.goToLocation}
+							>
+								<Icon icon="tabler:folder" width="1em" height="1em" className="shrink-0" />
+								<span className="truncate">{entry.parent ? `/${entry.parent}` : "/"}</span>
+							</button>
+						)}
+					</div>
 				</div>
 			</td>
-			<td>
-				<div className="flex justify-center items-center gap-2">
-					<button
-						onClick={() => downloadFile(file.filename)}
-						disabled={loading}
-						className="btn btn-circle btn-sm btn-primary action-btn"
-						aria-label="Download"
-						data-tooltip-id="actions-tooltip"
-						data-tooltip-content="Download"
-					>
-						<Icon icon="tabler:download" width="1em" height="1em" />
-					</button>
 
-					<a
-						href={fileUrl}
-						target="_blank"
-						rel="noreferrer"
-						className="btn btn-circle btn-sm btn-info action-btn"
-						aria-label="Open in new tab"
-						data-tooltip-id="actions-tooltip"
-						data-tooltip-content="Open"
-					>
-						<Icon icon="tabler:external-link" width="1em" height="1em" />
-					</a>
+			<td className="text-nowrap text-sm opacity-60">
+				{isFolder ? t.common.items(entry.items ?? 0) : formatBytes(entry.size)}
+			</td>
+			<td className="text-nowrap text-sm opacity-60 hidden md:table-cell">{formatDate(entry.modificationDate)}</td>
+			<td className="text-nowrap text-sm opacity-60 hidden xl:table-cell">{formatDate(entry.creationDate)}</td>
 
-					<button
-						onClick={() => removeFile(file.filename)}
-						disabled={loading}
-						className="btn btn-circle btn-sm btn-error action-btn"
-						aria-label="Delete"
-						data-tooltip-id="actions-tooltip"
-						data-tooltip-content="Delete"
-					>
-						<Icon icon="tabler:trash" width="1em" height="1em" />
-					</button>
+			<td onClick={stop}>
+				<div className="flex justify-end items-center">
+					<ActionButton
+						icon={isFolder ? "tabler:file-zip" : "tabler:download"}
+						label={isFolder ? t.common.downloadAsZip : t.common.download}
+						onClick={() => download([entry])}
+					/>
+					<ActionButton icon="tabler:copy" label={t.common.duplicate} onClick={() => openDialog({ kind: "duplicate", entry })} />
+					<ActionButton icon="tabler:pencil" label={t.common.rename} onClick={() => openDialog({ kind: "rename", entry })} />
+					<ActionButton
+						icon="tabler:trash"
+						label={t.common.delete}
+						danger
+						onClick={() => openDialog({ kind: "delete", paths: [entry.path] })}
+					/>
 				</div>
 			</td>
-			<td>
-				<input
-					onChange={handleRename}
-					className="input input-ghost w-full text-sm"
-					type="text"
-					defaultValue={file.filename}
-					placeholder="Filename"
-					spellCheck={false}
-					autoComplete="off"
-				/>
-			</td>
-			<td className="text-nowrap text-sm">{file.size}</td>
-			<td className="text-nowrap text-sm">{file.modificationDate}</td>
-			<td className="text-nowrap text-sm">{file.creationDate}</td>
 		</tr>
 	);
 }
 
-export default (): JSX.Element => {
-	const files = useGlobalStore(state => state.files);
+export default ({ entries }: { entries: Entry[] }): JSX.Element => {
+	const t = useT();
 	const sortBy = useGlobalStore(state => state.sortBy);
 	const orderBy = useGlobalStore(state => state.orderBy);
 	const setSort = useGlobalStore(state => state.setSort);
+	const selectedCount = useGlobalStore(state => state.selected.length);
+	const setSelected = useGlobalStore(state => state.setSelected);
+	const searching = useGlobalStore(state => state.query !== "");
+
+	const allSelected = entries.length > 0 && selectedCount === entries.length;
 
 	return (
-		<div className="rounded shadow-sm border border-base-300 bg-base-100 p-2 overflow-x-auto">
-			<table className="table table-xs">
+		<div className="rounded-box border border-subtle bg-base-100 px-2 pb-2 overflow-x-auto">
+			<table className="table table-sm">
 				<thead>
 					<tr>
-						<th className="text-center">Preview</th>
-						<th className="text-center">Actions</th>
+						<th className="w-0">
+							<Checkbox
+								checked={allSelected}
+								indeterminate={selectedCount > 0 && !allSelected}
+								onChange={() => setSelected(allSelected ? [] : entries.map(entry => entry.path))}
+								label={t.entries.selectAll}
+							/>
+						</th>
 
 						{COLUMNS.map(column => (
-							<th key={column.key}>
+							<th key={column.key} className={`py-3 ${column.className ?? ""}`}>
 								<button
 									onClick={() => setSort(column.key)}
-									className="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors"
+									className="flex items-center gap-1 cursor-pointer hover:text-base-content transition-colors"
 								>
-									<span>{column.label}</span>
-									<SortIcon
-										active={sortBy === column.key}
-										order={orderBy}
-									/>
+									<span>{t.columns[column.label]}</span>
+									<SortIcon active={sortBy === column.key} order={orderBy} />
 								</button>
 							</th>
 						))}
+
+						<th className="text-right">{t.columns.actions}</th>
 					</tr>
 				</thead>
+
 				<tbody>
-					{files.map(file => (
-						<Row key={file.filename} file={file} />
+					{entries.map(entry => (
+						<Row key={entry.path} entry={entry} searching={searching} />
 					))}
 				</tbody>
 			</table>
-
-			{files.length === 0 && (
-				<p className="text-center text-base-content/50 py-6">
-					No files found.
-				</p>
-			)}
-
-			<Tooltip id="actions-tooltip" />
 		</div>
 	);
 };

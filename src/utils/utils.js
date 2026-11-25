@@ -23,3 +23,9 @@ export function getLocalIP() {
 
     return preferred || candidates[0] || '127.0.0.1';
 }
+
+export function formatBytes(bytes) {
+    if (!bytes) return '0 B';
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), 5);
+    return `${+(bytes / Math.pow(1024, i)).toFixed(2)} ${['B', 'KB', 'MB', 'GB', 'TB', 'PB'][i]}`;
+}

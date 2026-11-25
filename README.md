@@ -2,39 +2,122 @@
 
 A web-based app to share and transfer files across your local network, like a "Google Drive" for your LAN, built with Express.js and React.
 
+Run one command on your computer, scan the QR code with your phone, and every device on the same Wi-Fi can browse, upload, download and organize the files in that folder. No accounts, no cloud, no install on the other devices: they only need a browser.
+
+## Features
+
+- **Folders**: create folders, browse them with breadcrumbs, and use the browser back button to go up.
+- **Drag and drop**:
+  - Drop files anywhere on the page to upload them, or onto a folder to upload them straight into it.
+  - Drag files and folders onto other folders, or onto a breadcrumb, to move them.
+- **Selection like your file explorer**: click and drag on empty space to select several items with a box, Shift+click to select a range, or use the checkboxes. Ctrl/Cmd/Shift add to the selection.
+- **Keyboard shortcuts**: Ctrl+A, Esc, arrow keys (with Shift to extend the selection), Enter to open, Backspace to go up, Delete, F2 to rename, and more. Press `?` in the app to see the full list.
+- **List and grid layouts**: rows with details, or a Google Drive style grid with thumbnails. Phones start in grid view and desktops in list view, and your choice is remembered.
+- **Previews**: images, video, audio, PDFs and text/code files open in a full-screen viewer. Use ← → to move between files.
+- **File type icons** and image/video thumbnails.
+- **Bulk actions**: download several files or whole folders as a single `.zip`, or delete them together.
+- **Rename, duplicate and delete**, with confirmation dialogs.
+- **Upload progress**: speed, time left and a cancel button for each upload.
+- **Live updates**: changes made from any device, or directly in the folder on the host computer, show up on every open tab without reloading.
+- **Shared clipboard**: paste text or a link on one device and copy it on another.
+- **Connect with a QR code**, shown both in the terminal and in the app.
+- **Storage info**: number of files and folders, space used, and free disk space.
+- **Resumable downloads and video seeking** through HTTP range requests.
+- **English and Spanish**: picked from your device language, and you can switch it from the header.
+- **Light, dark and device themes.**
+- **Works without internet**: everything, icons included, is served by your computer, so it works on a local network with no internet access.
+- **Connection feedback**: if the server stops, a banner says so and the app reconnects and catches up on its own when it's back.
+
 ## Installation
 
 ```bash
 npm install -g locale-drive
 ```
 
-## Help
-
-```bash
-npx locale-drive --help
-```
+Requires Node.js 22.12 or newer.
 
 ## Usage
 
-```bash
-npx locale-drive /path/to/storage
-```
-
-If the package is installed globally:
+Share a folder:
 
 ```bash
 locale-drive /path/to/storage
 ```
 
-## Screenshots
+Or run it without installing:
 
-### CLI
+```bash
+npx locale-drive /path/to/storage
+```
 
-![cli](https://raw.githubusercontent.com/lullaby6/locale-drive/refs/heads/main/screenshots/ci.png)
+The server prints its LAN address and a QR code, and opens the app in your browser. Open that address (or scan the QR code) from any device on the same network.
 
-### Client
+If you don't pass a path, Locale Drive uses `./storage` in the current directory and creates it if needed.
 
-![app](https://raw.githubusercontent.com/lullaby6/locale-drive/refs/heads/main/screenshots/app.png)
+### Options
+
+| Option | Alias | Default | Description |
+| --- | --- | --- | --- |
+| `--port` | `-p` | `3000` | Port the server listens on. |
+| `--max-upload` | `-m` | `0` | Max size per uploaded file, in MB. `0` means no limit. |
+| `--no-open` | | | Don't open the browser on start. |
+| `--help` | | | Show all options. |
+
+Examples:
+
+```bash
+# Share ~/Videos on port 8080
+locale-drive ~/Videos --port 8080
+
+# Limit uploads to 500 MB per file and don't open the browser
+locale-drive ./shared -m 500 --no-open
+```
+
+> **Note:** anyone on your network who opens the address can read, upload, move and delete files in the shared folder. Only run it on networks you trust.
+
+## Development
+
+```bash
+git clone https://github.com/lullaby6/locale-drive.git
+cd locale-drive
+npm install
+npm install --prefix src/client
+npm run dev
+```
+
+`npm run dev` starts both parts with live reload:
+
+- the Express API on port `3000` (restarts when the server code changes), and
+- the Vite dev server for the React client on port `3001`, which forwards `/api` and `/storage` to the API.
+
+Open http://localhost:3001 while developing.
+
+To build the client into `src/public` (the version that `npm start` and the published package serve):
+
+```bash
+npm run build
+```
+
+### Project structure
+
+```
+src/
+├── index.js        # CLI entry point: starts Express and serves the built client
+├── config.js       # Command line options
+├── routes.js       # API routes under /api
+├── controllers.js
+├── services/       # Files, live events (SSE) and shared clipboard
+├── middlewares/    # Uploads and error handling
+├── utils/
+├── public/         # Built client (generated by `npm run build`)
+└── client/         # React + Vite + Tailwind CSS + daisyUI app
+    └── src/languages/  # en.ts and es.ts translations
+```
+
+### Adding a language
+
+1. Copy `src/client/src/languages/en.ts` to a new file, for example `fr.ts`, and translate the texts. TypeScript reports any text you miss.
+2. Register it in `LANGUAGES` in `src/client/src/i18n.ts`.
 
 ## License
 

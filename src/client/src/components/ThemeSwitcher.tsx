@@ -1,100 +1,62 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import type { JSX } from "react";
 
 import { Icon } from "@iconify/react";
 
-export default () => {
-	const THEMES = Object.freeze({
-		DEVICE: "device",
-		LIGHT: "light",
-		DARK: "dark",
-	});
+import { useT } from "@/i18n";
 
-	const [theme, setTheme] = useState(getTheme());
+type ThemeChoice = "device" | "light" | "dark";
 
-	function setDeviceTheme() {
-		const deviceTheme = getDeviceTheme();
-		if (deviceTheme === THEMES.DARK) setDarkTheme();
-		else setLightTheme();
+const STORAGE_KEY = "theme";
+const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-		setTheme(THEMES.DEVICE);
+function getSavedTheme(): ThemeChoice {
+	const saved = localStorage.getItem(STORAGE_KEY);
+	return saved === "light" || saved === "dark" || saved === "device" ? saved : "device";
+}
 
-		localStorage.setItem("theme", THEMES.DEVICE);
-	}
+function applyTheme(choice: ThemeChoice) {
+	const theme = choice === "device" ? (darkQuery.matches ? "dark" : "light") : choice;
+	document.documentElement.setAttribute("data-theme", theme);
+}
 
-	function setLightTheme() {
-		document.documentElement.setAttribute("data-theme", THEMES.LIGHT);
-		localStorage.setItem("theme", THEMES.LIGHT);
-		setTheme(THEMES.LIGHT);
-	}
-
-	function setDarkTheme() {
-		document.documentElement.setAttribute("data-theme", THEMES.DARK);
-		localStorage.setItem("theme", THEMES.DARK);
-		setTheme(THEMES.DARK);
-	}
-
-	function getDeviceTheme() {
-		if (window.matchMedia("(prefers-color-scheme: dark)").matches)
-			return THEMES.DARK;
-		return THEMES.LIGHT;
-	}
-
-	function hasLocalStorageTheme() {
-		if (localStorage.getItem("theme")) return true;
-		return false;
-	}
-
-	function getTheme() {
-		if (hasLocalStorageTheme()) return localStorage.getItem("theme");
-		return getDeviceTheme();
-	}
+export default (): JSX.Element => {
+	const t = useT();
+	const [theme, setTheme] = useState<ThemeChoice>(getSavedTheme);
 
 	useEffect(() => {
-		if (hasLocalStorageTheme()) {
-			const localTheme = localStorage.getItem("theme");
+		applyTheme(theme);
+		localStorage.setItem(STORAGE_KEY, theme);
 
-			if (localTheme === THEMES.DEVICE) return setDeviceTheme();
-			else if (localTheme === THEMES.LIGHT) return setLightTheme();
-			else if (localTheme === THEMES.DARK) return setDarkTheme();
-		}
+		if (theme !== "device") return;
 
-		const deviceTheme = getDeviceTheme();
+		// Follow the OS when it switches between light and dark.
+		const onChange = () => applyTheme("device");
+		darkQuery.addEventListener("change", onChange);
+		return () => darkQuery.removeEventListener("change", onChange);
+	}, [theme]);
 
-		if (deviceTheme === THEMES.LIGHT) return setLightTheme();
-		else if (deviceTheme === THEMES.DARK) setDarkTheme();
-	}, []);
+	const options: { value: ThemeChoice; icon: string; label: string }[] = [
+		{ value: "device", icon: "tabler:device-desktop", label: t.header.theme.device },
+		{ value: "light", icon: "tabler:sun", label: t.header.theme.light },
+		{ value: "dark", icon: "tabler:moon", label: t.header.theme.dark },
+	];
 
 	return (
-		<div className="flex shadow-sm overflow-hidden join">
-			<button
-				className={`btn join-item px-2.5 ${
-					theme == THEMES.DEVICE ? "btn-primary" : ""
-				}`}
-				onClick={setDeviceTheme}
-			>
-				<Icon
-					icon="mingcute:device-line"
-					width="1em"
-					height="1em"
-					className="text-xl"
-				/>
-			</button>
-			<button
-				className={`btn join-item px-2.5 ${
-					theme == THEMES.LIGHT ? "btn-primary" : ""
-				}`}
-				onClick={setLightTheme}
-			>
-				<Icon icon="tabler:sun" width="1em" height="1em" className="text-xl" />
-			</button>
-			<button
-				className={`btn join-item px-2.5 ${
-					theme == THEMES.DARK ? "btn-primary" : ""
-				}`}
-				onClick={setDarkTheme}
-			>
-				<Icon icon="tabler:moon" width="1em" height="1em" className="text-xl" />
-			</button>
+		<div className="join">
+			{options.map(option => (
+				<button
+					key={option.value}
+					className={`btn join-item px-2.5 ${theme === option.value ? "btn-primary" : "btn-subtle"}`}
+					onClick={() => setTheme(option.value)}
+					aria-label={option.label}
+					aria-pressed={theme === option.value}
+					data-tooltip-id="tooltip"
+					data-tooltip-content={option.label}
+				>
+					<Icon icon={option.icon} width="1em" height="1em" className="text-lg" />
+				</button>
+			))}
 		</div>
 	);
 };
