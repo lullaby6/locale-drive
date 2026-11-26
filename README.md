@@ -4,6 +4,8 @@ A web-based app to share and transfer files across your local network, like a "G
 
 Run one command on your computer, scan the QR code with your phone, and every device on the same Wi-Fi can browse, upload, download and organize the files in that folder. No accounts, no cloud, no install on the other devices: they only need a browser.
 
+**Website: https://lullaby6.github.io/locale-drive/** (how it works, screenshots and downloads).
+
 ## Features
 
 - **Folders**: create folders, browse them with breadcrumbs, and use the browser back button to go up.
@@ -29,6 +31,17 @@ Run one command on your computer, scan the QR code with your phone, and every de
 - **Connection feedback**: if the server stops, a banner says so and the app reconnects and catches up on its own when it's back.
 
 ## Installation
+
+### Desktop app (Windows)
+
+Download it from the [releases](https://github.com/lullaby6/locale-drive/releases/latest) or the [website](https://lullaby6.github.io/locale-drive/#download):
+
+- **Installer** (`Locale Drive_x.x.x_x64-setup.exe`): installs Locale Drive and adds it to the Start menu.
+- **Portable** (`Locale Drive_x.x.x_x64-portable.zip`): unzip it anywhere and open `Locale Drive.exe`.
+
+The app runs from the notification area (next to the clock) and opens Locale Drive in your browser. It includes Node.js, so nothing else is needed. Requires Windows 10 or 11; the first time, allow `node` on private networks when Windows Firewall asks, so other devices can connect. Files are stored in `Documents\Locale Drive`.
+
+### npm (Windows, macOS and Linux)
 
 ```bash
 npm install -g locale-drive
@@ -84,7 +97,16 @@ Locale Drive uses port `24680` by default, an uncommon port chosen so it doesn't
 
 ## Development
 
-This repository is the server (Express) and the npm package. The web app lives in its own repository, [locale-drive-frontend](https://github.com/lullaby6/locale-drive-frontend), included here as a git submodule in `locale-drive-frontend/`.
+Locale Drive is split across these repositories and branches:
+
+| Where | What it is |
+| --- | --- |
+| [locale-drive](https://github.com/lullaby6/locale-drive) (this repository, `main`) | The Express server, the CLI and the npm package. It serves the built web app from `src/public`. Desktop builds are published in its [releases](https://github.com/lullaby6/locale-drive/releases). |
+| [locale-drive-frontend](https://github.com/lullaby6/locale-drive-frontend) | The web app every device opens: React + Vite + Tailwind CSS + daisyUI. Included here as a git submodule in `locale-drive-frontend/`. |
+| [locale-drive-tauri](https://github.com/lullaby6/locale-drive-tauri) | The Windows desktop app (Tauri). It runs this server with a bundled Node.js from the notification area, and builds the installer and the portable `.zip`. Includes this repository as a submodule. |
+| [`website`](https://github.com/lullaby6/locale-drive/tree/website) branch | The [website](https://lullaby6.github.io/locale-drive/): Astro + React + daisyUI, with the same look as the app. Each push builds it into the `website-dist` branch, which GitHub Pages serves. |
+
+To work on the server and the web app together:
 
 ```bash
 git clone --recursive https://github.com/lullaby6/locale-drive.git
