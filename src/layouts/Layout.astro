@@ -1,0 +1,86 @@
+---
+import "@/styles/global.css";
+
+import { withBase } from "@/config";
+import { LANGUAGE_PATHS, getT } from "@/i18n";
+import type { Language } from "@/i18n";
+
+interface Props {
+	language: Language;
+}
+
+const { language } = Astro.props;
+const t = getT(language);
+const canonical = new URL(LANGUAGE_PATHS[language], Astro.site);
+const spanishPath = LANGUAGE_PATHS.es;
+---
+
+<!doctype html>
+<html lang={language}>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+		<title>{t.meta.title}</title>
+		<meta name="description" content={t.meta.description} />
+		<link rel="canonical" href={canonical} />
+		{
+			(Object.keys(LANGUAGE_PATHS) as Language[]).map(code => (
+				<link rel="alternate" hreflang={code} href={new URL(LANGUAGE_PATHS[code], Astro.site)} />
+			))
+		}
+
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={t.meta.title} />
+		<meta property="og:description" content={t.meta.description} />
+		<meta name="theme-color" content="#5b5bf0" />
+
+		<link rel="icon" href={withBase("/favicon.svg")} type="image/svg+xml" />
+		<link rel="icon" href={withBase("/favicon-32x32.png")} type="image/png" sizes="32x32" />
+		<link rel="icon" href={withBase("/favicon-16x16.png")} type="image/png" sizes="16x16" />
+		<link rel="apple-touch-icon" href={withBase("/apple-touch-icon.png")} sizes="180x180" />
+
+		<script is:inline>
+			// Applied before anything renders so the page never flashes the wrong theme (same as the app).
+			(function () {
+				var saved = null;
+				try {
+					saved = localStorage.getItem("theme");
+				} catch (e) {}
+				var dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+				var theme = saved === "light" || saved === "dark" ? saved : dark ? "dark" : "light";
+				document.documentElement.setAttribute("data-theme", theme);
+			})();
+		</script>
+
+		<script is:inline define:vars={{ language, spanishPath }}>
+			// Like the app: the language picked in the switcher wins; otherwise Spanish devices get the Spanish page.
+			(function () {
+				var params = new URLSearchParams(location.search);
+				var picked = params.get("lang");
+				var saved = null;
+
+				try {
+					if (picked === "en" || picked === "es") localStorage.setItem("language", picked);
+					saved = localStorage.getItem("language");
+				} catch (e) {
+					saved = picked;
+				}
+
+				if (picked) {
+					params.delete("lang");
+					var query = params.toString();
+					history.replaceState(null, "", location.pathname + (query ? "?" + query : "") + location.hash);
+				}
+
+				if (language !== "en") return;
+
+				var device = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+				var wanted = saved === "en" || saved === "es" ? saved : device.toLowerCase().indexOf("es") === 0 ? "es" : "en";
+				if (wanted === "es") location.replace(spanishPath + location.hash);
+			})();
+		</script>
+	</head>
+	<body class="bg-base-300 text-base-content antialiased">
+		<slot />
+	</body>
+</html>

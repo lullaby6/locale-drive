@@ -1,0 +1,22 @@
+---
+import CopyButton from "@/components/CopyButton";
+import { getT } from "@/i18n";
+import type { Language } from "@/i18n";
+
+interface Props {
+	command: string;
+	language: Language;
+	comment?: string;
+}
+
+const { command, language, comment } = Astro.props;
+const t = getT(language);
+---
+
+<div class="flex items-center gap-2 pl-4 pr-1.5 py-1.5 rounded-field border border-subtle bg-base-200 font-mono text-sm">
+	<div class="flex flex-col min-w-0 grow py-1 overflow-x-auto">
+		{comment && <span class="opacity-50 whitespace-nowrap"># {comment}</span>}
+		<code class="whitespace-nowrap"><span class="text-primary select-none">$ </span>{command}</code>
+	</div>
+	<CopyButton client:visible text={command} label={t.copy} copiedLabel={t.copied} />
+</div>

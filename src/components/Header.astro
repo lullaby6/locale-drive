@@ -1,0 +1,73 @@
+---
+import Icon from "@/components/Icon";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import ThemeSwitcher from "@/components/ThemeSwitcher";
+
+import { GITHUB_URL, NPM_URL, withBase } from "@/config";
+import { getT } from "@/i18n";
+import type { Language } from "@/i18n";
+
+interface Props {
+	language: Language;
+}
+
+const { language } = Astro.props;
+const t = getT(language);
+
+const links = [
+	{ href: "#how-it-works", label: t.nav.howItWorks },
+	{ href: "#screenshots", label: t.nav.screenshots },
+	{ href: "#features", label: t.nav.features },
+	{ href: "#download", label: t.nav.download },
+	{ href: "#faq", label: t.nav.faq },
+];
+---
+
+<!-- Same card as the app's header: logo where the app shows the shared folder, icon buttons on the right. -->
+<div class="sticky top-[env(safe-area-inset-top,0px)] z-40 px-4 sm:px-6 lg:px-10 pt-4">
+	<header class="max-w-6xl mx-auto flex items-center justify-between gap-3 p-2 pl-3 rounded-box border border-subtle bg-base-100/90 backdrop-blur">
+		<a href="#top" class="flex items-center gap-2.5 shrink-0 rounded-field pr-2">
+			<img src={withBase("/favicon.svg")} alt="" width="36" height="36" class="size-9" />
+			<span class="font-bold text-lg tracking-tight">Locale Drive</span>
+		</a>
+
+		<nav class="hidden lg:flex items-center gap-1" aria-label={t.nav.menu}>
+			{links.map(link => <a href={link.href} class="btn btn-ghost btn-sm font-medium">{link.label}</a>)}
+		</nav>
+
+		<div class="hidden sm:flex shrink-0 items-center gap-1">
+			<a href={GITHUB_URL} target="_blank" rel="noreferrer" class="btn btn-ghost btn-square" aria-label={t.nav.github} title={t.nav.github}>
+				<Icon icon="tabler:brand-github" className="text-xl" />
+			</a>
+			<a href={NPM_URL} target="_blank" rel="noreferrer" class="btn btn-ghost btn-square" aria-label={t.nav.npm} title={t.nav.npm}>
+				<Icon icon="tabler:brand-npm" className="text-2xl" />
+			</a>
+			<LanguageSwitcher language={language} label={t.nav.language} />
+			<div class="ml-1">
+				<ThemeSwitcher client:load labels={t.nav.theme} />
+			</div>
+		</div>
+
+		<!-- Phones: one menu with the links, language and theme. -->
+		<div class="sm:hidden dropdown dropdown-end">
+			<div tabindex="0" role="button" class="btn btn-subtle btn-square" aria-label={t.nav.menu}>
+				<Icon icon="tabler:menu-2" className="text-xl" />
+			</div>
+			<div tabindex="0" class="dropdown-content z-50 mt-2 w-[calc(100vw-2rem)] max-w-xs flex flex-col gap-2 p-2 rounded-box shadow-xl border border-subtle bg-base-100">
+				<ul class="menu w-full p-0 gap-0.5">
+					{links.map(link => <li><a href={link.href}>{link.label}</a></li>)}
+				</ul>
+				<div class="join w-full">
+					<a href={GITHUB_URL} target="_blank" rel="noreferrer" class="btn btn-subtle join-item flex-1" aria-label={t.nav.github}>
+						<Icon icon="tabler:brand-github" className="text-xl" />
+					</a>
+					<a href={NPM_URL} target="_blank" rel="noreferrer" class="btn btn-subtle join-item flex-1" aria-label={t.nav.npm}>
+						<Icon icon="tabler:brand-npm" className="text-2xl" />
+					</a>
+					<LanguageSwitcher language={language} label={t.nav.language} className="join-item flex-1 flex" buttonClassName="btn-subtle w-full rounded-[inherit]" />
+				</div>
+				<ThemeSwitcher client:load labels={t.nav.theme} className="w-full" />
+			</div>
+		</div>
+	</header>
+</div>
