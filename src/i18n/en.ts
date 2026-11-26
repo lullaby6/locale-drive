@@ -27,7 +27,8 @@ const en = {
 			"Share a folder from your computer and open it from any phone, tablet or laptop on the same Wi-Fi. Browse, upload, download and organize files from the browser: no accounts, no cloud, nothing to install on the other devices.",
 		download: "Download for Windows",
 		npm: "Install with npm",
-		note: (version: string) => `Version ${version} · Windows 10/11 app, or any OS with Node.js`,
+		version: "Version",
+		note: "Windows 10/11 app, or any OS with Node.js",
 		pills: ["No accounts", "No cloud", "Works without internet", "Only a browser on other devices"],
 	},
 

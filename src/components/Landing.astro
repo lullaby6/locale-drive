@@ -11,20 +11,16 @@ import type { Shot, ShotImage } from "@/components/Screenshots";
 import {
 	DESKTOP_REPO_URL,
 	GITHUB_URL,
-	INSTALLER_FILE,
-	INSTALLER_URL,
 	ISSUES_URL,
 	LICENSE_URL,
 	NODE_VERSION,
 	NPM_URL,
-	PORTABLE_FILE,
-	PORTABLE_URL,
 	RELEASES_URL,
-	VERSION,
 	withBase,
 } from "@/config";
 import { getT } from "@/i18n";
 import type { Language } from "@/i18n";
+import { fetchLatestRelease } from "@/release";
 
 interface Props {
 	language: Language;
@@ -32,6 +28,12 @@ interface Props {
 
 const { language } = Astro.props;
 const t = getT(language);
+
+// Download links from the latest release at build time; the script at the end refreshes them in the
+// browser. Until an asset is found, its button opens the latest release page.
+const release = await fetchLatestRelease();
+const installer = release?.installer ?? null;
+const portable = release?.portable ?? null;
 
 // Screenshots taken from the real app, in both languages and themes: <view>-<language>-<theme>.png
 const files = import.meta.glob<{ default: ImageMetadata }>("../assets/screenshots/*.png", { eager: true });
@@ -119,7 +121,9 @@ const card = "rounded-box border border-subtle bg-base-100";
 					</a>
 				</div>
 
-				<p class="text-sm opacity-50">{t.hero.note(VERSION)}</p>
+				<p class="text-sm opacity-50">
+					<span data-release="version-label" hidden={!release}>{t.hero.version} <span data-release="version">{release?.version}</span> · </span>{t.hero.note}
+				</p>
 			</div>
 
 			<!-- App preview: desktop screenshot with the phone version on top. -->
@@ -264,11 +268,11 @@ const card = "rounded-box border border-subtle bg-base-100";
 						<h3 class="text-lg font-semibold">{t.download.installer.title}</h3>
 						<p class="text-sm opacity-60">{t.download.installer.body}</p>
 					</div>
-					<a href={INSTALLER_URL} class="btn btn-primary w-full">
+					<a href={installer?.url ?? RELEASES_URL} data-release="installer" class="btn btn-primary w-full">
 						<Icon icon="tabler:download" className="text-xl" />
 						{t.download.installer.button}
 					</a>
-					<p class="text-xs opacity-50 font-mono truncate" title={INSTALLER_FILE}>{INSTALLER_FILE}</p>
+					<p class="text-xs opacity-50 font-mono truncate" data-release="installer-name" title={installer?.name ?? ""}>{installer?.name ?? "…-setup.exe"}</p>
 				</div>
 
 				<div class={`${card} flex flex-col gap-4 p-6`}>
@@ -279,11 +283,11 @@ const card = "rounded-box border border-subtle bg-base-100";
 						<h3 class="text-lg font-semibold">{t.download.portable.title}</h3>
 						<p class="text-sm opacity-60">{t.download.portable.body}</p>
 					</div>
-					<a href={PORTABLE_URL} class="btn btn-subtle w-full">
+					<a href={portable?.url ?? RELEASES_URL} data-release="portable" class="btn btn-subtle w-full">
 						<Icon icon="tabler:download" className="text-xl" />
 						{t.download.portable.button}
 					</a>
-					<p class="text-xs opacity-50 font-mono truncate" title={PORTABLE_FILE}>{PORTABLE_FILE}</p>
+					<p class="text-xs opacity-50 font-mono truncate" data-release="portable-name" title={portable?.name ?? ""}>{portable?.name ?? "…-portable.zip"}</p>
 				</div>
 
 				<div class={`${card} flex flex-col gap-4 p-6`}>
@@ -483,3 +487,53 @@ const card = "rounded-box border border-subtle bg-base-100";
 		</div>
 	</footer>
 </div>
+
+<script>
+	// Points the download buttons at the files of the latest release, so a new release shows up
+	// without rebuilding the site. Kept for an hour per tab to stay far from GitHub's API limits.
+	import { fetchLatestRelease } from "@/release";
+	import type { LatestRelease } from "@/release";
+
+	const CACHE_KEY = "locale-drive:latest-release";
+	const CACHE_TIME = 60 * 60 * 1000;
+
+	async function getRelease(): Promise<LatestRelease | null> {
+		try {
+			const cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) ?? "null");
+			if (cached && Date.now() - cached.time < CACHE_TIME) return cached.release;
+		} catch {
+			// No session storage: just ask GitHub.
+		}
+
+		const release = await fetchLatestRelease();
+		if (release) {
+			try {
+				sessionStorage.setItem(CACHE_KEY, JSON.stringify({ time: Date.now(), release }));
+			} catch {
+				// Not cached; it works anyway.
+			}
+		}
+		return release;
+	}
+
+	const set = (key: string, apply: (element: HTMLElement) => void) =>
+		document.querySelectorAll<HTMLElement>(`[data-release="${key}"]`).forEach(apply);
+
+	getRelease().then(release => {
+		if (!release) return;
+
+		set("version", element => (element.textContent = release.version));
+		set("version-label", element => (element.hidden = false));
+
+		for (const kind of ["installer", "portable"] as const) {
+			const asset = release[kind];
+			if (!asset) continue;
+
+			set(kind, element => element.setAttribute("href", asset.url));
+			set(`${kind}-name`, element => {
+				element.textContent = asset.name;
+				element.title = asset.name;
+			});
+		}
+	});
+</script>

@@ -41,8 +41,10 @@ src/
 └── pages/                 # index.astro (en) and es/index.astro
 ```
 
-When a new version ships, update `VERSION` in `src/config.ts`. The download buttons point to
-`https://github.com/lullaby6/locale-drive/releases/latest/download/<file>`, so the latest release of locale-drive must
-include `Locale.Drive_<version>_x64-setup.exe` and `Locale.Drive_<version>_x64-portable.zip`.
+The download buttons don't hardcode any version or file name. [src/release.ts](src/release.ts) asks the GitHub API
+for the latest release of locale-drive and picks the asset ending in `setup.exe` (installer) and the one ending in
+`portable.zip` (portable). It runs at build time, so the HTML already has the right links, and again in the browser,
+so a new release shows up without rebuilding the site. If an asset can't be found, its button opens the latest
+release page.
 
 Icons are Tabler icons, bundled at build time by `iconsPlugin.ts` (only the ones used in `src/`).

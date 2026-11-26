@@ -29,7 +29,8 @@ const es: Translations = {
 			"Comparte una carpeta de tu computadora y ábrela desde cualquier celular, tablet o laptop de la misma Wi-Fi. Explora, sube, descarga y organiza archivos desde el navegador: sin cuentas, sin nube y sin instalar nada en los demás dispositivos.",
 		download: "Descargar para Windows",
 		npm: "Instalar con npm",
-		note: (version: string) => `Versión ${version} · App para Windows 10/11, o cualquier sistema con Node.js`,
+		version: "Versión",
+		note: "App para Windows 10/11, o cualquier sistema con Node.js",
 		pills: ["Sin cuentas", "Sin nube", "Funciona sin internet", "Solo un navegador en los demás dispositivos"],
 	},
 
