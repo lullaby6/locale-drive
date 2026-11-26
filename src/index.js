@@ -120,4 +120,5 @@ console.log(`Server listening on: ${URL}`);
 
 qrcode.generate(URL, { small: true }, qr => console.log(qr));
 
-if (openBrowser) open(URL);
+// "?connect" makes the app open with the QR code dialog showing, ready to scan from a phone.
+if (openBrowser) open(`${URL}/?connect`);

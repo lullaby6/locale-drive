@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "ai-color-palette",
+        "value": "*",
+        "files": [
+          "src/public/assets/index-ql-ENo-U.css"
+        ],
+        "createdAt": "2026-11-26T21:54:16.154Z",
+        "reason": "user confirmed: asked to keep the app's primary blue/indigo (oklch 58% 0.233 277) when restyling dark mode; file is a generated build artifact"
+      }
+    ]
+  }
+}
